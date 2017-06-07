@@ -10,6 +10,13 @@ var creds = '';
 var redis = require('redis');
 var client = '';
 
+const HOST = 'localhost';
+
+var subscriber = redis.createClient(6379, HOST);
+//subscriber.auth("xxxxxx");
+subscriber.on("error", function(err) {  sys.debug(err);});
+subscriber.subscribe("test");// pub/sub channel
+
 // Read credentials from JSON
 fs.readFile('creds.json', 'utf-8', function (err, data) {
     if (err) throw err;
@@ -114,7 +121,11 @@ app.get('/get_messages', function (req, res) {
 app.get('/get_chatters', function (req, res) {
     res.send(chatters);
 });
-
+subscriber.on("message", function(channel, message) {  
+    console.log(message);
+  io.emit('send', {'username':'admin','message':message});
+    //  socket.emit('user_event', {data:message});
+});
 // Socket Connection
 // UI Stuff
 io.on('connection', function (socket) {
